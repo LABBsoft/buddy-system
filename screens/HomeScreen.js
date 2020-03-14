@@ -21,7 +21,6 @@ export default function HomeScreen() {
         </View>
 
         <View style={styles.getStartedContainer}>
-          <DevelopmentModeNotice />
 
           <Text style={styles.getStartedText}>Open up the code for this screen:</Text>
 
