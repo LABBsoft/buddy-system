@@ -5,16 +5,8 @@ import * as WebBrowser from 'expo-web-browser';
 import { RectButton, ScrollView, LongPressGestureHandler } from 'react-native-gesture-handler';
 import * as Progress from 'react-native-progress';
 
-export default function LinksScreen() {
-
-    return (
-      new bunch
-
-    );
-}
-
-class bunch extends React.Component{
-  constructor(props){
+export default class LinksScreen extends React.Component{
+constructor(props){
     super(props);
     this.state = {sessionTime: 0};
     this.tick = this.tick.bind(this);
@@ -54,9 +46,7 @@ componentWillUnmount() {
       </View>
     )
   }
-
 }
-
 
 
 function OptionButton({ icon, label, onPress, isLastOption }) {
