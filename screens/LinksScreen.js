@@ -1,19 +1,63 @@
 import * as React from 'react';
-import {Image, 
-        StyleSheet,
-        Text, 
-        View } from 'react-native';
+import { Image, StyleSheet, Text, View, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
-import { RectButton, ScrollView } from 'react-native-gesture-handler';
+import { RectButton, ScrollView, LongPressGestureHandler } from 'react-native-gesture-handler';
+import * as Progress from 'react-native-progress';
 
 export default function LinksScreen() {
-  return (
-    <View style={styles.container} contentContainerStyle={styles.contentContainer}>
-      <Image source={require('../assets/images/robot-dev.png')} /> 
-    </View>
-  );
+
+    return (
+      new bunch
+
+    );
 }
+
+class bunch extends React.Component{
+  constructor(props){
+    super(props);
+    this.state = {sessionTime: 0};
+    this.tick = this.tick.bind(this);
+}
+
+updateBar(){
+  if(this.state.sessionTime < 1){
+    this.setState(prevState => ({
+      sessionTime: prevState.sessionTime + 0.1
+    }));
+  }
+  else{
+    alert("done!");
+    this.setState({sessionTime : 0})
+    clearInterval(this.interval);
+  }
+}
+
+tick() {
+    this.interval = setInterval(() => {
+      this.updateBar()
+    }, 100);  
+}
+
+componentWillUnmount() {
+  clearInterval(this.interval);
+}
+
+  render(){
+    return (
+        <View style={styles.container}>
+        <Image source={require ('../assets/images/robot-dev.png')} />
+        <Button title="press to start work session"
+          onPress={ this.tick }
+        />
+        <Progress.Bar progress = {this.state.sessionTime} width = {200}/>
+      </View>
+    )
+  }
+
+}
+
+
 
 function OptionButton({ icon, label, onPress, isLastOption }) {
   return (
@@ -32,8 +76,11 @@ function OptionButton({ icon, label, onPress, isLastOption }) {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fa0000',
+    flex : 1,
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    alignItems : 'center',
+    backgroundColor: '#fafafa',
   },
   contentContainer: {
     paddingTop: 15,
