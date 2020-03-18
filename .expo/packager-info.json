@@ -1,9 +1,9 @@
 {
-  "devToolsPort": 19002,
+  "devToolsPort": 19005,
   "expoServerPort": 19000,
-  "packagerPort": 19001,
-  "packagerPid": 12260,
+  "packagerPort": 19006,
+  "packagerPid": 12228,
   "expoServerNgrokUrl": "https://vx-rjp.anonymous.buddy-system.exp.direct",
   "packagerNgrokUrl": "https://packager.vx-rjp.anonymous.buddy-system.exp.direct",
-  "ngrokPid": 8992
+  "ngrokPid": 2148
 }
