@@ -6,6 +6,8 @@ import { RectButton, ScrollView, LongPressGestureHandler } from 'react-native-ge
 import * as Progress from 'react-native-progress';
 import TimePicker from "react-native-24h-timepicker";
 
+const timeScale = 100; //1000 = real time
+
 export default class LinksScreen extends React.Component{
 constructor(props){
     super(props);
@@ -13,14 +15,16 @@ constructor(props){
     this.state = {sessionTime: 0}; //Time elapsed in seconds
     this.state = {seconds : 0}; //Length of work session in seconds
     this.state = {progress : 0} //Amount of session elapsed out of 1
-    this.state = {time : ""}
+    this.state = {time : ""}    //Session time remaining for display
+    this.state = {counting : 0} //Active session boolean
 }
 
 clearSession(){
   this.setState({sessionTime : 0,
     seconds: 0,
     progress : 0,
-    time : ""
+    time : "",
+    counting : 0
   });
   clearInterval(this.interval);
 }
@@ -30,13 +34,24 @@ tick(){
     if(this.state.progress < 1){
       this.setState(prevState => ({
         sessionTime: prevState.sessionTime + 1}));
-      this.setState({progress : (this.state.sessionTime/this.state.seconds)})
+      this.setState({progress : (this.state.sessionTime/this.state.seconds),
+      counting : 1})
+      this.getTimeRemaining();
     }
     else{
       alert("done session");
       this.clearSession();
     }
-  }, 10); //set to 1000 for real time scale  
+  }, timeScale); 
+}
+
+getTimeRemaining(){
+  let secs = this.state.seconds - this.state.sessionTime;
+  let hrs = Math.floor(secs/3600);
+  secs -= hrs*3600;
+  let mins = Math.floor(secs/60);
+  secs -= mins * 60;
+  this.setState({time : `${hrs}:${mins}:${secs}`});
 }
 
 componentWillUnmount() {
@@ -59,13 +74,27 @@ onConfirm(hour, minute) {
   this.tick();
 }
 
+
   render(){
+    const isActive = this.state.counting;
+    let button, text;
+    if(isActive){
+      button = <Button title="press to cancel work session"
+      onPress={ ()=> this.clearSession()}
+      style={styles.cancelButton}/>
+      text = <Text>Time remaining : {this.state.time}</Text>
+    }
+    else{
+      button = <Button title="press to start work session"
+      onPress={ ()=> this.TimePicker.open()}
+      style={styles.startButton}/>
+      text = <Text>Welcome!</Text>
+    }
+
     return (
         <View style={styles.container}>
         <Image source={require ('../assets/images/robot-dev.png')} />
-        <Button title="press to start work session"
-          onPress={ ()=> this.TimePicker.open() }
-        />
+        {button}
         <TimePicker
           ref={ref => {
             this.TimePicker = ref;
@@ -74,7 +103,7 @@ onConfirm(hour, minute) {
           onConfirm={(hour, minute) => this.onConfirm(hour, minute)}
         />
         <Progress.Bar progress = {this.state.progress} />
-        <Text>Session time : {this.state.time}</Text> 
+         {text}
       </View>
     )
   }
@@ -126,4 +155,10 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     marginTop: 1,
   },
+  startButton: {
+    color: '#00ff00'
+  },
+  cancelButton: {
+    color: '#ff0000'
+  }
 });
