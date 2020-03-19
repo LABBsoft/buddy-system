@@ -8,7 +8,7 @@ import TimePicker from "react-native-24h-timepicker";
 
 const timeScale = 100; //1000 = real time
 
-export default class LinksScreen extends React.Component{
+export default class BuddySystem extends React.Component{
 constructor(props){
     super(props);
     this.tick = this.tick.bind(this);
@@ -77,17 +77,19 @@ onConfirm(hour, minute) {
 
   render(){
     const isActive = this.state.counting;
-    let button, text;
+    let button, bar, text;
     if(isActive){
       button = <Button title="press to cancel work session"
       onPress={ ()=> this.clearSession()}
       style={styles.cancelButton}/>
+      bar = <Progress.Bar progress = {this.state.progress} />
       text = <Text>Time remaining : {this.state.time}</Text>
     }
     else{
       button = <Button title="press to start work session"
       onPress={ ()=> this.TimePicker.open()}
       style={styles.startButton}/>
+      bar = <Progress.Bar indeterminate={true} />
       text = <Text>Welcome!</Text>
     }
 
@@ -95,15 +97,16 @@ onConfirm(hour, minute) {
         <View style={styles.container}>
         <Image source={require ('../assets/images/robot-dev.png')} />
         {button}
-        <TimePicker
+        {bar}       
+        {text}
+
+         <TimePicker
           ref={ref => {
             this.TimePicker = ref;
           }}
           onCancel={() => this.onCancel()}
           onConfirm={(hour, minute) => this.onConfirm(hour, minute)}
         />
-        <Progress.Bar progress = {this.state.progress} />
-         {text}
       </View>
     )
   }
