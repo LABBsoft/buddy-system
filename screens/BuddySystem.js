@@ -6,36 +6,84 @@ import { RectButton, ScrollView, LongPressGestureHandler } from 'react-native-ge
 import * as Progress from 'react-native-progress';
 import TimePicker from "react-native-24h-timepicker";
 
-const timeScale = 100; //1000 = real time
+const timeScale = 1000; //1000 = real time
 
 export default class BuddySystem extends React.Component{
 constructor(props){
     super(props);
-    this.tick = this.tick.bind(this);
-    this.state = {sessionTime: 0}; //Time elapsed in seconds
-    this.state = {seconds : 0}; //Length of work session in seconds
-    this.state = {progress : 0} //Amount of session elapsed out of 1
-    this.state = {time : ""}    //Session time remaining for display
-    this.state = {counting : 0} //Active session boolean
+    //this.tick = this.tick.bind(this);
+    if(this.props.state){
+      this.state = {secondsElapsed: 0}; //Time elapsed in seconds
+      this.state = {sessionLengthSeconds : this.props.sessionLengthSeconds}; //Length of work session in seconds
+      this.state = {sessionProgress : this.props.sessionProgress} //Ratio of session elapsed out of 1
+      this.state = {timeRemaining : this.props.timeRemaining}    //Session time remaining for display
+      this.state = {status : this.props.status}
+    }
+    else{
+      this.state = {secondsElapsed: 0}; //Time elapsed in seconds
+      this.state = {sessionLengthSeconds : 0}; //Length of work session in seconds
+      this.state = {sessionProgress : 0} //Amount of session elapsed out of 1
+      this.state = {timeRemaining : ""}    //Session time remaining for display
+      this.state = {status : 'idle'}} //Active session boolean
+    
 }
 
 clearSession(){
-  this.setState({sessionTime : 0,
-    seconds: 0,
-    progress : 0,
-    time : "",
-    counting : 0
+  this.setState({secondsElapsed : 0,
+    sessionLengthSeconds: 0,
+    sessionProgress : 0,
+    timeRemaining : "",
+    status : 'idle'
   });
   clearInterval(this.interval);
 }
 
+componentWillUnmount() {
+  clearInterval(this.interval);
+}
+
+getTimeRemaining(){
+  let secs = this.state.sessionLengthSeconds - this.state.secondsElapsed;
+  let hrs = Math.floor(secs/3600);
+  secs -= hrs*3600;
+  let mins = Math.floor(secs/60);
+  secs -= mins * 60;
+  this.setState({timeRemaining : `${hrs}:${mins}:${secs}`});
+}
+
+onBreak(){
+  clearInterval(this.interval);
+  this.setState({status : 'break'});
+}
+
+onBreakEnd(){
+  this.tick();
+  this.setState({status : 'active'})
+}
+
+onCancel() {
+  this.clearSession();
+  this.TimePicker.close();
+}
+
+onTimeConfirm(hour, minute) {
+  clearInterval(this.interval);
+  this.setState({ secondsElapsed : 0,
+   sessionLengthSeconds: ((hour * 3600) + (minute * 60)),
+   sessionProgress : 0,
+   timeRemaining: `${hour}:${minute}:00`,
+    status:'active'
+  });
+  this.TimePicker.close();
+  this.tick();
+}
+
 tick(){
   this.interval = setInterval(() => {
-    if(this.state.progress < 1){
+    if(this.state.sessionProgress < 1){
       this.setState(prevState => ({
-        sessionTime: prevState.sessionTime + 1}));
-      this.setState({progress : (this.state.sessionTime/this.state.seconds),
-      counting : 1})
+        secondsElapsed: prevState.secondsElapsed + 1}));
+      this.setState({sessionProgress : (this.state.secondsElapsed/this.state.sessionLengthSeconds)});
       this.getTimeRemaining();
     }
     else{
@@ -45,67 +93,55 @@ tick(){
   }, timeScale); 
 }
 
-getTimeRemaining(){
-  let secs = this.state.seconds - this.state.sessionTime;
-  let hrs = Math.floor(secs/3600);
-  secs -= hrs*3600;
-  let mins = Math.floor(secs/60);
-  secs -= mins * 60;
-  this.setState({time : `${hrs}:${mins}:${secs}`});
-}
-
-componentWillUnmount() {
-  clearInterval(this.interval);
-}
-
-onCancel() {
-  this.clearSession();
-  this.TimePicker.close();
-}
-
-onConfirm(hour, minute) {
-  clearInterval(this.interval);
-  this.setState({ sessionTime : 0,
-   seconds: ((hour * 3600) + (minute * 60)),
-   progress : 0,
-   time: `${hour}:${minute}`
-  });
-  this.TimePicker.close();
-  this.tick();
-}
-
 
   render(){
-    const isActive = this.state.counting;
-    let button, bar, text;
-    if(isActive){
+    const status = this.state.status;
+    let button, bar, text, breakButton;
+    if(status == 'active'){
       button = <Button title="press to cancel work session"
       onPress={ ()=> this.clearSession()}
       style={styles.cancelButton}/>
-      bar = <Progress.Bar progress = {this.state.progress} />
-      text = <Text>Time remaining : {this.state.time}</Text>
+      bar = <Progress.Bar progress = {this.state.sessionProgress} />
+      text = <Text>Time remaining : {this.state.timeRemaining}</Text>
+      breakButton = <Button title="Take a break"
+      onPress={()=> this.onBreak()}/>
     }
-    else{
+    else if (status == 'idle'){
       button = <Button title="press to start work session"
       onPress={ ()=> this.TimePicker.open()}
       style={styles.startButton}/>
       bar = <Progress.Bar indeterminate={true} />
       text = <Text>Welcome!</Text>
     }
+    else if (status == 'break'){
+      button = <Button title='press to end break'
+      onPress={ ()=>this.onBreakEnd()}/>
+      text = <Text>You are on a break.</Text>
+    }
 
     return (
         <View style={styles.container}>
-        <Image source={require ('../assets/images/robot-dev.png')} />
+          <div style = {styles.character}>
+            <div style = {styles.meter}>
+              <Progress.Circle indeterminate = {true} showsText={true}/>
+              <Text>Water level</Text>
+            </div>
+              <Image source={require ('../assets/images/robot-dev.png')} />
+              <div style = {styles.meter}>
+              <Progress.Circle indeterminate = {true} showsText={true}/>
+              <Text>Stretch counter</Text>
+            </div>
+          </div>
         {button}
         {bar}       
         {text}
-
+        {breakButton}
          <TimePicker
           ref={ref => {
             this.TimePicker = ref;
           }}
           onCancel={() => this.onCancel()}
-          onConfirm={(hour, minute) => this.onConfirm(hour, minute)}
+          onConfirm={(hour, minute) => this.onTimeConfirm(hour, minute)}
         />
       </View>
     )
@@ -113,22 +149,10 @@ onConfirm(hour, minute) {
 }
 
 
-function OptionButton({ icon, label, onPress, isLastOption }) {
-  return (
-    <RectButton style={[styles.option, isLastOption && styles.lastOption]} onPress={onPress}>
-      <View style={{ flexDirection: 'row' }}>
-        <View style={styles.optionIconContainer}>
-          <Ionicons name={icon} size={22} color="rgba(0,0,0,0.35)" />
-        </View>
-        <View style={styles.optionTextContainer}>
-          <Text style={styles.optionText}>{label}</Text>
-        </View>
-      </View>
-    </RectButton>
-  );
-}
-
 const styles = StyleSheet.create({
+  cancelButton: {
+    color: '#ff0000'
+  },
   container: {
     flex : 1,
     flexDirection: 'column',
@@ -136,32 +160,22 @@ const styles = StyleSheet.create({
     alignItems : 'center',
     backgroundColor: '#fafafa',
   },
-  contentContainer: {
-    paddingTop: 15,
+  character: {
+    flex : 1,
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems : 'center',
+    backgroundColor: '#fafafa',
   },
-  optionIconContainer: {
-    marginRight: 12,
-  },
-  option: {
-    backgroundColor: '#fdfdfd',
-    paddingHorizontal: 15,
-    paddingVertical: 15,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: 0,
-    borderColor: '#ededed',
-  },
-  lastOption: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  optionText: {
-    fontSize: 15,
-    alignSelf: 'flex-start',
-    marginTop: 1,
+  meter : {
+    flex : 1,
+    flexDirection: 'column',
+    justifyContent: 'space-around',
+    alignItems : 'center',
+    backgroundColor: '#fafafa',
   },
   startButton: {
     color: '#00ff00'
-  },
-  cancelButton: {
-    color: '#ff0000'
   }
+
 });
