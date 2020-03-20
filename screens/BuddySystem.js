@@ -1,10 +1,8 @@
 import * as React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View, Button } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import * as WebBrowser from 'expo-web-browser';
-import { RectButton, ScrollView, LongPressGestureHandler } from 'react-native-gesture-handler';
 import * as Progress from 'react-native-progress';
 import TimePicker from "react-native-24h-timepicker";
+
 
 const timeScale = 1000; //1000 = real time
 
@@ -97,6 +95,7 @@ tick(){
   render(){
     const status = this.state.status;
     let button, bar, text, breakButton;
+    let waterBar, waterLabel, activityBar, activityLabel;
     if(status == 'active'){
       button = <Button title="press to cancel work session"
       onPress={ ()=> this.clearSession()}
@@ -105,6 +104,10 @@ tick(){
       text = <Text>Time remaining : {this.state.timeRemaining}</Text>
       breakButton = <Button title="Take a break"
       onPress={()=> this.onBreak()}/>
+      waterBar = <Progress.Bar progress={0.2} width={100}/>
+      waterLabel = <Text>Water</Text>
+      activityBar = <Progress.Bar progress={0.5} width={100}/>
+      activityLabel = <Text>Activity</Text>
     }
     else if (status == 'idle'){
       button = <Button title="press to start work session"
@@ -112,6 +115,10 @@ tick(){
       style={styles.startButton}/>
       bar = <Progress.Bar indeterminate={true} />
       text = <Text>Welcome!</Text>
+      waterBar = <Progress.Bar indeterminate={true} width={100}/>
+      waterLabel = <Text>Water</Text>
+      activityBar = <Progress.Bar indeterminate={true} width={100}/>
+      activityLabel = <Text>Activity</Text>
     }
     else if (status == 'break'){
       button = <Button title='press to end break'
@@ -121,22 +128,22 @@ tick(){
 
     return (
         <View style={styles.container}>
-          <div style = {styles.character}>
-            <div style = {styles.meter}>
-              <Progress.Circle indeterminate = {true} showsText={true}/>
-              <Text>Water level</Text>
-            </div>
-              <Image source={require ('../assets/images/robot-dev.png')} />
-              <div style = {styles.meter}>
-              <Progress.Circle indeterminate = {true} showsText={true}/>
-              <Text>Stretch counter</Text>
-            </div>
-          </div>
-        {button}
-        {bar}       
-        {text}
-        {breakButton}
-         <TimePicker
+          <View style = {styles.character}>
+            <View style = {styles.meter}>
+              {waterBar}
+              {waterLabel}
+            </View>
+              <Image source={require ('../assets/images/robot-dev.png')} style={styles.icon} />
+            <View style = {styles.meter}>
+              {activityBar}
+              {activityLabel}
+            </View>
+          </View>
+          {button}
+          {bar}       
+          {text}
+          {breakButton}
+          <TimePicker
           ref={ref => {
             this.TimePicker = ref;
           }}
@@ -161,21 +168,25 @@ const styles = StyleSheet.create({
     backgroundColor: '#fafafa',
   },
   character: {
-    flex : 1,
+    flex:0.25,
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems : 'center',
     backgroundColor: '#fafafa',
   },
+  icon :{
+    resizeMode : "contain"
+  },
   meter : {
-    flex : 1,
+    minHeight : 50,
     flexDirection: 'column',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
     alignItems : 'center',
     backgroundColor: '#fafafa',
   },
   startButton: {
     color: '#00ff00'
-  }
+  },
+ 
 
 });
